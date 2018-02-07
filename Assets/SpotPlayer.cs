@@ -2,24 +2,24 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TriggerEnter : MonoBehaviour {
+public class SpotPlayer : MonoBehaviour {
 
 	[SerializeField]
 	private NPCMove theNPC;
 
 	void OnTriggerEnter (Collider other)
 	{
-		if (other.gameObject.tag == "NPC") {
-			theNPC.waiting = true;
-			this.gameObject.tag = "OldPatrolPoint";
+		if (other.gameObject.tag == "Player") {
+			theNPC.seePlayer = true;
 		}
 		Debug.Log ("Enter " + other.gameObject.name);
 	}
 
 	void OnTriggerExit (Collider other)
 	{
-		if (other.CompareTag("NPC")) {
-			this.gameObject.tag = "PatrolPoint";
+		if (other.CompareTag("Player")) {
+			theNPC.seePlayer = false;
+			theNPC.waiting = true;
 		}
 		Debug.Log ("Exit " + other.name);
 	}

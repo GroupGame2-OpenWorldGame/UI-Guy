@@ -22,6 +22,22 @@ public class NPCMove : MonoBehaviour {
 	[SerializeField]
 	private bool patroling;
 
+	[SerializeField]
+	private float waitTime;
+	private float currentWaitTime;
+	public bool waiting;
+
+	[SerializeField]
+	private bool randomWait;
+	[SerializeField]
+	private float ranMin;
+	[SerializeField]
+	private float ranMax;
+
+	public bool seePlayer;
+	[SerializeField]
+	private GameObject player;
+
 	// Use this for initialization
 	void Start () {
 		navAgent = this.GetComponent<NavMeshAgent> ();
@@ -37,16 +53,38 @@ public class NPCMove : MonoBehaviour {
 		} else {
 			SetDestination ();
 		}
+
+
+		if (randomWait) {
+			waitTime = Random.Range (ranMin, ranMax);
+		}
+		currentWaitTime = waitTime;
 	}
 
 	void Update()
 	{
-		if (isMovingTarget) {
-			SetDestination ();
-		}
+		if (!seePlayer) {
+			if (isMovingTarget) {
+				SetDestination ();
+			}
 
-		if (currentPoint >= patrolPoints.Length) {
-			currentPoint = 0;
+			if (currentPoint >= patrolPoints.Length) {
+				currentPoint = 0;
+			}
+
+			if (waiting) {
+				currentWaitTime -= Time.deltaTime;
+				if (currentWaitTime <= 0) {
+					waiting = false;
+					ChangePatrol ();
+					if (randomWait) {
+						waitTime = Random.Range (ranMin, ranMax);
+					}
+					currentWaitTime = waitTime;
+				}
+			}
+		} else {
+			FollowPlayer ();
 		}
 	}
 
@@ -73,11 +111,22 @@ public class NPCMove : MonoBehaviour {
 		int tempPoint;
 		if (randomPatrol) {
 			tempPoint = Random.Range (0, patrolPoints.Length);
-			currentPoint = tempPoint;
 		} else {
-			tempPoint = currentPoint;
-			currentPoint++;
+			tempPoint = currentPoint + 1;
+		}
+
+		if (tempPoint == currentPoint) {
+			tempPoint = currentPoint + 1;
+		}
+		if (tempPoint >= patrolPoints.Length) {
+			tempPoint = 0;
 		}
 		navAgent.SetDestination (patrolPoints [tempPoint].transform.position);
+		currentPoint = tempPoint;
+	}
+
+	void FollowPlayer()
+	{
+		navAgent.SetDestination (player.transform.position);
 	}
 }
